@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
-'''Task 12's module.
-'''
+"""
+Task 12's module
+"""
 from pymongo import MongoClient
 
 
-def print_nginx_request_logs(nginx_collection):
-    '''Prints stats about Nginx request logs.
-    '''
-    print('{} logs'.format(nginx_collection.count_documents({})))
-    print('Methods:')
-    methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-    for method in methods:
-        req_count = len(list(nginx_collection.find({'method': method})))
-        print('\tmethod {}: {}'.format(method, req_count))
-    status_checks_count = len(list(
-        nginx_collection.find({'method': 'GET', 'path': '/status'})
-    ))
-    print('{} status check'.format(status_checks_count))
+def log_statistics():
+    """a function that provides some stats about nginx logs"""
+    client = MongoClient()
+    db = client.logs
+    collection = db.nginx
+
+    total = collection.count_documents({})
+    get = collection.count_documents({"method": "GET"})
+    post = collection.count_documents({"method": "POST"})
+    put = collection.count_documents({"method": "PUT"})
+    patch = collection.count_documents({"method": "PATCH"})
+    delete = collection.count_documents({"method": "DELETE"})
+    path = collection.count_documents({"method": "GET", "path": "/status"})
+
+    print("{:d} logs". format(total))
+    print("Methods:")
+    print("\tmethod GET: {:d}". format(get))
+    print("\tmethod POST: {:d}". format(post))
+    print("\tmethod PUT: {:d}". format(put))
+    print("\tmethod PATCH: {:d}". format(patch))
+    print("\tmethod DELETE: {:d}". format(delete))
+    print("{:d} status check". format(path))
 
 
-def run():
-    '''Provides some stats about Nginx logs stored in MongoDB.
-    '''
-    client = MongoClient('mongodb://127.0.0.1:27017')
-    print_nginx_request_logs(client.logs.nginx)
-
-
-if __name__ == '__main__':
-    run()
+if __name__ == "__main__":
+    log_statistics()
